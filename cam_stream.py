@@ -10,7 +10,6 @@ from http import server
 from datetime import datetime
 from threading import Thread, Condition
 
-
 PAGE = """\
 <html>
 <head>
@@ -90,31 +89,28 @@ class StreamingServer(socketserver.ThreadingMixIn, server.HTTPServer):
 output = StreamingOutput()
 
 
-def set_timestamp(my_cam):
-    start = datetime.now()
-    while True:
-        my_cam.annotate_text = datetime.now().strftime('%d.%m.%Y, %H:%M:%S.%f')
-        my_cam.wait_recording(0.2)
-        # print("set_timestamp for " + datetime.now().strftime('%d.%m.%Y, %H:%M:%S.%f'))
+class CamServer:
+    def set_timestamp(self, my_cam):
+        while True:
+            my_cam.annotate_text = datetime.now().strftime('%d.%m.%Y, %H:%M:%S.%f')
+            my_cam.wait_recording(0.2)
 
-
-def run_server():
-    with picamera.PiCamera() as camera:
-        global output
-        # Uncomment the next line to change your Pi's Camera rotation (in degrees)
-        # camera.rotation = 90
-        camera.resolution = '1024x768'
-        camera.framerate = 15
-        camera.annotate_background = picamera.Color('black')
-        camera.annotate_text = datetime.now().strftime("%d.%m.%Y, %H:%M:%S.%f")
-        camera.start_recording(output, format='mjpeg')
-        Thread(target=set_timestamp, args=(camera,)).start()
-        try:
-            address = ('', 8000)
-            server = StreamingServer(address, StreamingHandler)
-            server.serve_forever()
-        finally:
-            camera.stop_recording()
+    def run_server(self):
+        with picamera.PiCamera() as camera:
+            # Uncomment the next line to change your Pi's Camera rotation (in degrees)
+            # camera.rotation = 90
+            camera.resolution = '1024x768'
+            camera.framerate = 15
+            camera.annotate_background = picamera.Color('black')
+            camera.annotate_text = datetime.now().strftime("%d.%m.%Y, %H:%M:%S.%f")
+            camera.start_recording(output, format='mjpeg')
+            Thread(target=self.set_timestamp, args=(camera,)).start()
+            try:
+                address = ('', 8000)
+                camserver = StreamingServer(address, StreamingHandler)
+                camserver.serve_forever()
+            finally:
+                camera.stop_recording()
 
 
 # Main program logic follows:

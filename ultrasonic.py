@@ -1,3 +1,4 @@
+import sys
 import time
 import RPi.GPIO as GPIO
 
@@ -21,7 +22,7 @@ class Ultrasonic:
         while GPIO.input(self.echo_pin) != value and count > 0:
             count = count - 1
 
-    def getDistance(self):
+    def get_distance(self):
         distance_cm = [0, 0, 0]
         for i in range(3):
             self.send_trigger_pulse()
@@ -33,6 +34,11 @@ class Ultrasonic:
             distance_cm[i] = pulse_len / 0.000058
         distance_cm = sorted(distance_cm)
         return int(distance_cm[1])
+
+    def print_distance_to_console(self):
+        while True:
+            sys.stdout.write("\rEntfernung: " + str(self.get_distance()) + "cm")
+            time.sleep(1)
 
 
 # Main program logic follows:
